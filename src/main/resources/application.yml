@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: mauri-pay-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mauripay}
+    username: ${DB_USER:mauripay}
+    password: ${DB_PASSWORD:mauripay}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    timeout: 30m
+
+server:
+  port: ${PORT:8080}
+
+app:
+  payment:
+    code-ttl-minutes: 15
+  webhook:
+    max-attempts: 6
+    retry-base-seconds: 30
+  dev:
+    seed: ${APP_DEV_SEED:true}        # seeds a demo merchant + dev top-up endpoint
+    seed-merchant-api-key: ${APP_DEV_MERCHANT_KEY:dev-merchant-key-please-change}
+
+logging:
+  level:
+    org.springframework.security: INFO
