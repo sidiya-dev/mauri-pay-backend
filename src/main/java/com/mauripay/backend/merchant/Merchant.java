@@ -26,6 +26,9 @@ public class Merchant {
     @Column(name = "webhook_secret", nullable = false)
     private String webhookSecret;
 
+    @Column(name = "callback_url")
+    private String callbackUrl;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -39,6 +42,11 @@ public class Merchant {
         this.name = name;
         this.apiKeyHash = apiKeyHash;
         this.webhookSecret = webhookSecret;
+    }
+
+    public Merchant(String name, String apiKeyHash, String webhookSecret, String callbackUrl) {
+        this(name, apiKeyHash, webhookSecret);
+        this.callbackUrl = callbackUrl;
     }
 
     public UUID getId() {
@@ -55,6 +63,10 @@ public class Merchant {
 
     public String getWebhookSecret() {
         return webhookSecret;
+    }
+
+    public String getCallbackUrl() {
+        return callbackUrl;
     }
 
     public boolean isActive() {

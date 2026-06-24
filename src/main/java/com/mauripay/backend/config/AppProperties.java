@@ -3,7 +3,7 @@ package com.mauripay.backend.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app")
-public record AppProperties(Payment payment, Webhook webhook, Dev dev) {
+public record AppProperties(Payment payment, Webhook webhook, Dev dev, Security security) {
 
     public record Payment(int codeTtlMinutes) {
     }
@@ -12,5 +12,9 @@ public record AppProperties(Payment payment, Webhook webhook, Dev dev) {
     }
 
     public record Dev(boolean seed, String seedMerchantApiKey) {
+    }
+
+    /** Brute-force protection for login. */
+    public record Security(int maxFailedAttempts, int lockMinutes) {
     }
 }

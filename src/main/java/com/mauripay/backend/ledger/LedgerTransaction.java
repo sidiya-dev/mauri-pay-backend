@@ -52,6 +52,14 @@ public class LedgerTransaction {
         return id;
     }
 
+    public UUID getSenderId() {
+        return senderId;
+    }
+
+    public UUID getReceiverId() {
+        return receiverId;
+    }
+
     public BigDecimal getAmount() {
         return amount;
     }

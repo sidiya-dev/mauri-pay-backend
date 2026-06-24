@@ -2,6 +2,7 @@ package com.mauripay.backend.config;
 
 import com.mauripay.backend.auth.AppUserDetails;
 import com.mauripay.backend.common.ApiException;
+import com.mauripay.backend.common.ErrorCode;
 import com.mauripay.backend.user.Account;
 import com.mauripay.backend.user.AccountRepository;
 import jakarta.validation.constraints.DecimalMin;
@@ -36,7 +37,7 @@ public class DevController {
     public Account topUp(@AuthenticationPrincipal AppUserDetails principal,
                          @RequestBody TopUpRequest request) {
         Account account = accountRepository.findByUserIdForUpdate(principal.getId())
-                .orElseThrow(() -> ApiException.notFound("Account not found"));
+                .orElseThrow(() -> ApiException.notFound(ErrorCode.ACCOUNT_NOT_FOUND, "Account not found"));
         account.credit(request.amount());
         return account;
     }

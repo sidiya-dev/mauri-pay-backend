@@ -3,6 +3,7 @@ package com.mauripay.backend.auth;
 import com.mauripay.backend.auth.dto.RegisterRequest;
 import com.mauripay.backend.auth.dto.UserResponse;
 import com.mauripay.backend.common.ApiException;
+import com.mauripay.backend.common.ErrorCode;
 import com.mauripay.backend.user.Account;
 import com.mauripay.backend.user.AccountRepository;
 import com.mauripay.backend.user.AppUser;
@@ -30,7 +31,7 @@ public class AuthService {
     @Transactional
     public UserResponse register(RegisterRequest request) {
         if (userRepository.existsByPhone(request.phone())) {
-            throw ApiException.conflict("Phone already registered");
+            throw ApiException.conflict(ErrorCode.PHONE_ALREADY_EXISTS, "Phone already registered");
         }
         AppUser user = userRepository.save(
                 new AppUser(request.phone(), request.fullName(), passwordEncoder.encode(request.password())));
@@ -41,9 +42,9 @@ public class AuthService {
     @Transactional(readOnly = true)
     public UserResponse currentUser(UUID userId) {
         AppUser user = userRepository.findById(userId)
-                .orElseThrow(() -> ApiException.notFound("User not found"));
+                .orElseThrow(() -> ApiException.notFound(ErrorCode.USER_NOT_FOUND, "User not found"));
         Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> ApiException.notFound("Account not found"));
+                .orElseThrow(() -> ApiException.notFound(ErrorCode.ACCOUNT_NOT_FOUND, "Account not found"));
         return toResponse(user, account);
     }
 

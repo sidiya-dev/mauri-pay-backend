@@ -2,6 +2,8 @@ package com.mauripay.backend.config;
 
 import com.mauripay.backend.merchant.ApiKeyService;
 import com.mauripay.backend.merchant.Merchant;
+import com.mauripay.backend.merchant.MerchantAccount;
+import com.mauripay.backend.merchant.MerchantAccountRepository;
 import com.mauripay.backend.merchant.MerchantRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,17 +21,24 @@ public class DevSeeder {
     private static final String DEV_WEBHOOK_SECRET = "dev-webhook-secret";
 
     @Bean
-    ApplicationRunner seedMerchant(MerchantRepository merchantRepository, ApiKeyService apiKeyService,
-                                   AppProperties properties) {
+    ApplicationRunner seedMerchant(MerchantRepository merchantRepository,
+                                   MerchantAccountRepository merchantAccountRepository,
+                                   ApiKeyService apiKeyService, AppProperties properties) {
         return args -> {
             String apiKey = properties.dev().seedMerchantApiKey();
             String hash = apiKeyService.hash(apiKey);
-            if (merchantRepository.findByApiKeyHashAndActiveTrue(hash).isPresent()) {
-                return;
+            Merchant merchant = merchantRepository.findByApiKeyHashAndActiveTrue(hash)
+                    .orElseGet(() -> {
+                        Merchant created = merchantRepository.save(
+                                new Merchant("Demo Merchant", hash, DEV_WEBHOOK_SECRET));
+                        log.warn("[DEV] Seeded 'Demo Merchant'. X-Api-Key: {} | webhook secret: {}",
+                                apiKey, DEV_WEBHOOK_SECRET);
+                        return created;
+                    });
+            // Ensure the merchant has an account (covers merchants seeded before V3).
+            if (merchantAccountRepository.findByMerchantId(merchant.getId()).isEmpty()) {
+                merchantAccountRepository.save(new MerchantAccount(merchant.getId()));
             }
-            merchantRepository.save(new Merchant("Demo Merchant", hash, DEV_WEBHOOK_SECRET));
-            log.warn("[DEV] Seeded 'Demo Merchant'. X-Api-Key: {} | webhook secret: {}",
-                    apiKey, DEV_WEBHOOK_SECRET);
         };
     }
 }

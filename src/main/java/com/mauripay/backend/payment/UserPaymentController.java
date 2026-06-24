@@ -1,12 +1,15 @@
 package com.mauripay.backend.payment;
 
 import com.mauripay.backend.auth.AppUserDetails;
+import com.mauripay.backend.payment.dto.PayRequest;
 import com.mauripay.backend.payment.dto.PaymentPreview;
 import com.mauripay.backend.payment.dto.PaymentResponse;
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,10 +30,14 @@ public class UserPaymentController {
         return paymentService.preview(code);
     }
 
-    /** Pay the code from the current user's balance. No amount is accepted in the body. */
+    /**
+     * Pay the code from the current user's balance after verifying their password.
+     * No amount is accepted in the body — only the password.
+     */
     @PostMapping("/{code}/pay")
     public PaymentResponse pay(@PathVariable String code,
+                               @Valid @RequestBody PayRequest request,
                                @AuthenticationPrincipal AppUserDetails principal) {
-        return PaymentResponse.from(paymentService.pay(code, principal.getId()));
+        return PaymentResponse.from(paymentService.pay(code, principal.getId(), request.password()));
     }
 }

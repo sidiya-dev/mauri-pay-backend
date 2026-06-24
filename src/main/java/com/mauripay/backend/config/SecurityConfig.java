@@ -30,12 +30,15 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/merchants/register").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         // Merchant (API key) endpoints
                         .requestMatchers(HttpMethod.POST, "/api/v1/payments").hasRole("MERCHANT")
                         .requestMatchers(HttpMethod.GET, "/api/v1/payments/*/status").hasRole("MERCHANT")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/merchants/me").hasRole("MERCHANT")
                         // User (session) endpoints
                         .requestMatchers("/api/v1/payments/**").hasRole("USER")
+                        .requestMatchers("/api/v1/transfers/**", "/api/v1/transactions/**").hasRole("USER")
                         .anyRequest().authenticated())
                 .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) ->

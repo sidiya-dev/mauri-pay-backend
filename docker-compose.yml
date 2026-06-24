@@ -7,9 +7,33 @@ services:
       POSTGRES_USER: mauripay
       POSTGRES_PASSWORD: mauripay
     ports:
-      - "5432:5432"
+      # Host 5435 avoids clashing with other local Postgres instances on 5432.
+      - "5435:5432"
     volumes:
       - mauripay-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mauripay -d mauripay"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mauri-pay-backend
+    container_name: mauripay-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/mauripay
+      DB_USER: mauripay
+      DB_PASSWORD: mauripay
+      PORT: 8080
+    ports:
+      # Host 8090 avoids clashing with other services on 8080 (e.g. dawaii api-gateway).
+      - "8090:8080"
 
 volumes:
   mauripay-pgdata:

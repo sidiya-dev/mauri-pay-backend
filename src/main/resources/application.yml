@@ -20,10 +20,14 @@ spring:
     store-type: jdbc
     jdbc:
       initialize-schema: always
-    timeout: 30m
+    # Sessions expire after 4 minutes of inactivity (each authenticated request resets the clock).
+    timeout: 4m
 
 server:
   port: ${PORT:8080}
+  servlet:
+    session:
+      timeout: 4m
 
 app:
   payment:
@@ -34,7 +38,13 @@ app:
   dev:
     seed: ${APP_DEV_SEED:true}        # seeds a demo merchant + dev top-up endpoint
     seed-merchant-api-key: ${APP_DEV_MERCHANT_KEY:dev-merchant-key-please-change}
+  security:
+    max-failed-attempts: ${APP_MAX_FAILED_ATTEMPTS:5}   # lock after this many consecutive failures
+    lock-minutes: ${APP_LOCK_MINUTES:15}                # lock duration once tripped
 
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{requestId}] %logger{36} - %msg%n"
   level:
+    com.mauripay.backend: INFO
     org.springframework.security: INFO

@@ -68,8 +68,14 @@ class PaymentFlowIT {
                 .andExpect(jsonPath("$.amount").value(120.00))
                 .andExpect(jsonPath("$.merchantName").value("Demo Merchant"));
 
-        // user pays -> PAID
-        mvc.perform(post("/api/v1/payments/" + code + "/pay").session(session))
+        // wrong password -> 401
+        mvc.perform(post("/api/v1/payments/" + code + "/pay").session(session)
+                        .contentType(APPLICATION_JSON).content("{\"password\":\"wrongpass\"}"))
+                .andExpect(status().isUnauthorized());
+
+        // user pays with correct password -> PAID
+        mvc.perform(post("/api/v1/payments/" + code + "/pay").session(session)
+                        .contentType(APPLICATION_JSON).content("{\"password\":\"secret123\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PAID"));
 
@@ -81,7 +87,8 @@ class PaymentFlowIT {
         assertThat(webhookRepository.findAll()).hasSize(1);
 
         // paying again is idempotent -> 409
-        mvc.perform(post("/api/v1/payments/" + code + "/pay").session(session))
+        mvc.perform(post("/api/v1/payments/" + code + "/pay").session(session)
+                        .contentType(APPLICATION_JSON).content("{\"password\":\"secret123\"}"))
                 .andExpect(status().isConflict());
     }
 
@@ -90,7 +97,8 @@ class PaymentFlowIT {
         register("22200002", "Bob");
         MockHttpSession session = login("22200002");
         String code = createPayment("999.00", null);
-        mvc.perform(post("/api/v1/payments/" + code + "/pay").session(session))
+        mvc.perform(post("/api/v1/payments/" + code + "/pay").session(session)
+                        .contentType(APPLICATION_JSON).content("{\"password\":\"secret123\"}"))
                 .andExpect(status().isUnprocessableEntity());
     }
 
