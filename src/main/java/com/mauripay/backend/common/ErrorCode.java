@@ -14,6 +14,7 @@ public final class ErrorCode {
     public static final String INVALID_PASSWORD = "INVALID_PASSWORD";
     public static final String ACCOUNT_LOCKED = "ACCOUNT_LOCKED";
     public static final String NOT_AUTHENTICATED = "NOT_AUTHENTICATED";
+    public static final String ACCESS_DENIED = "ACCESS_DENIED";
     public static final String PHONE_ALREADY_EXISTS = "PHONE_ALREADY_EXISTS";
     public static final String USER_NOT_FOUND = "USER_NOT_FOUND";
     public static final String ACCOUNT_NOT_FOUND = "ACCOUNT_NOT_FOUND";

@@ -1,7 +1,7 @@
 package com.mauripay.backend.config;
 
+import com.mauripay.backend.common.SecurityErrorHandlers;
 import com.mauripay.backend.merchant.ApiKeyAuthFilter;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,7 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, ApiKeyAuthFilter apiKeyAuthFilter)
+    public SecurityFilterChain filterChain(HttpSecurity http, ApiKeyAuthFilter apiKeyAuthFilter,
+            SecurityErrorHandlers.JsonAuthenticationEntryPoint authEntryPoint,
+            SecurityErrorHandlers.JsonAccessDeniedHandler accessDeniedHandler)
             throws Exception {
         http
                 // Stateful cookie-session auth for users; CSRF disabled because the API is consumed
@@ -41,8 +43,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/transfers/**", "/api/v1/transactions/**").hasRole("USER")
                         .anyRequest().authenticated())
                 .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) ->
-                        res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication required")));
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(authEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler));
         return http.build();
     }
 
