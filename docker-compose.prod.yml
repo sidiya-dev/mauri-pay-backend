@@ -1,0 +1,50 @@
+# Production deployment for the MauriPay backend.
+# Joins the Dawaii stack's docker network so Dawaii's pharmacy-service can reach
+# this service at http://mauripay-backend:8080, and the shared nginx proxy can
+# expose it publicly at https://<host>/mauripay/ (prefix stripped).
+#
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+#
+# Requires .env.prod (gitignored) — see .env.prod.example.
+services:
+  postgres:
+    image: postgres:16
+    container_name: mauripay-postgres
+    environment:
+      POSTGRES_DB: mauripay
+      POSTGRES_USER: mauripay
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports: ["127.0.0.1:5435:5432"]   # localhost only — not public
+    volumes: [mauripay-pgdata:/var/lib/postgresql/data]
+    networks: [dawaii]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mauripay -d mauripay"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: { context: ., dockerfile: Dockerfile }
+    image: mauri-pay-backend:latest
+    container_name: mauripay-backend
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/mauripay
+      DB_USER: mauripay
+      DB_PASSWORD: ${DB_PASSWORD}
+      PORT: 8080
+      APP_DEV_SEED: ${APP_DEV_SEED}                 # seeds the demo merchant used by Dawaii
+      APP_DEV_MERCHANT_KEY: ${APP_DEV_MERCHANT_KEY}  # = Dawaii's MAURIPAY_API_KEY
+    expose: ["8080"]   # reached via the shared proxy + internal network, not published
+    networks: [dawaii]
+    restart: unless-stopped
+
+volumes:
+  mauripay-pgdata:
+
+networks:
+  dawaii:
+    external: true
+    name: dawaii-backend-system_dawaii-network
